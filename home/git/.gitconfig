@@ -1,0 +1,37 @@
+[user]
+	email = petri@swarmia.com
+	name = Petri Avikainen
+	signingkey = 6C841AB9DA497D42
+[push]
+	default = current
+[github]
+	user = silppuri
+[alias]
+	ci = commit
+	co = checkout
+	st = status
+	br = branch
+	lg = log
+    l = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+	ctags = !.git/hooks/ctags
+	g = grep --break --heading --line-number
+[color]
+	ui = auto
+[core]
+	editor = nvim
+	excludesfile = $HOME/.gitignore
+[merge]
+	tool = vimdiff
+[commit]
+	gpgsign = true
+[pull]
+	rebase = false
+[init]
+	defaultBranch = main
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[gpg]
+	program = gpg

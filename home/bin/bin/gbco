@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# Check if gh CLI is installed
+if ! command -v gh &> /dev/null; then
+    echo "GitHub CLI (gh) is not installed. Please install it to use this script."
+    exit 1
+fi
+
+# Get the username using GitHub CLI
+username=$(gh api /user | grep -o '"login": *"[^"]*"' | awk -F'"' '{print $4}')
+
+if [ -z "$username" ]; then
+    echo "Failed to fetch GitHub username. Make sure you're authenticated with gh CLI."
+    exit 1
+fi
+
+# Prompt for branch type
+read -p "Enter branch type (e.g., feature, bugfix, hotfix): " branch_type
+
+# Prompt for branch description
+read -p "Enter branch description: " description
+
+# Convert description to lowercase and replace spaces with hyphens
+description=$(echo "$description" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+
+# Create the new branch name
+new_branch="${username}/${branch_type}/${description}"
+
+# Create and switch to the new branch
+git checkout -b "$new_branch"
+
+echo "Created and switched to new branch: $new_branch"
