@@ -6,41 +6,36 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     exit 1
 fi
 
+# Detect default branch
+DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+DEFAULT_BRANCH=${DEFAULT_BRANCH:-main}
+
 # Get the current branch name
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-# Run Claude with the review prompt
-echo "Reviewing branch: $BRANCH"
+echo "Reviewing branch: $BRANCH against $DEFAULT_BRANCH"
 echo "----------------------------------------"
-claude -p "Review this branch's changes against master. Focus on actionable issues only.
 
-CONTEXT:
-- Branch: $BRANCH
-- Base: master
-- Changed files: $(git diff master...HEAD --name-only | wc -l)
+claude -p "Review changes on branch '$BRANCH' against $DEFAULT_BRANCH.
 
-REVIEW SCOPE:
-1. Code style violations per CLAUDE.md (imports, error handling, null checks ??, unused vars)
-2. Type safety issues (any types, missing assertions)
-3. Test coverage gaps (async callbacks, database mocks, static dates)
-4. Logic bugs or edge cases
-5. Performance concerns
+Read CLAUDE.md first, then run: git diff $DEFAULT_BRANCH...HEAD
 
-CONSTRAINTS:
-- Read CLAUDE.md first for code guidelines
-- Use 'git diff master...HEAD' to see changes
-- Focus ONLY on changed lines and their immediate context
-- Output plain text (no markdown)
-- Be concise: list only issues requiring action
+RULES:
+- Only flag issues in changed lines
+- No markdown formatting
+- If no issues: output 'No actionable issues found.'
 
-OUTPUT FORMAT:
-For each issue:
-- File:line - Brief issue description
-- Why: One-line rationale
-- Action: Specific command or fix to apply
+CHECK FOR:
+- CLAUDE.md violations (imports, error handling, ?? checks, unused vars)
+- Type safety (any types, missing assertions)
+- Missing test coverage (async callbacks, mocks, static dates)
+- Logic bugs or edge cases
 
-If no issues found, output: 'No actionable issues found.'
-
-Start review now."
+FORMAT (per issue):
+file:line - Issue
+Why: rationale
+Fix: specific action" \
+    --model sonnet \
+    --allowedTools "Bash(git diff:*)" "Bash(git log:*)" "Bash(git show:*)" "Read" "Glob" "Grep"
 
 exit $?
